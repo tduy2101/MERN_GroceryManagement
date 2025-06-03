@@ -5,7 +5,7 @@ const salesOrderSchema = new mongoose.Schema({
     orderNumber: {
         type: String,
         unique: true,
-        required: true, // Validation sẽ báo lỗi nếu trường này không có giá trị khi lưu
+        required: true, 
     },
     customerName: {
         type: String,
@@ -25,7 +25,8 @@ const salesOrderSchema = new mongoose.Schema({
             quantity: {
                 type: Number,
                 required: true,
-                min: 1 // Số lượng phải ít nhất là 1
+                min: [1, 'Quantity must be at least 1'], // Validation ở backend
+                default: 1 // Giá trị mặc định nếu frontend không gửi
             },
             unitPrice: {
                 type: Number,
@@ -44,12 +45,12 @@ const salesOrderSchema = new mongoose.Schema({
         required: true,
         min: 0
     },
-    createdBy: { // Người tạo đơn hàng
+    createdBy: { 
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Tham chiếu đến model User
+        ref: 'User', 
         required: true
     }
-}, { timestamps: true }); 
+}, { timestamps: true });
 
 
 const SalesOrder = mongoose.model('SalesOrder', salesOrderSchema);

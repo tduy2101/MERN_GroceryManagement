@@ -1,11 +1,15 @@
 // src/pages/SalesOrders.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { FaEdit, FaTrashAlt, FaPlus, FaSearch, FaTimes, FaSpinner, FaShoppingCart, FaSave, FaMinusCircle, FaUserTag } from 'react-icons/fa';
-import { API_PATHS, BASE_URL } from '../../utils/apiPath';
+import {
+    FaEdit, FaTrashAlt, FaPlus, FaSearch, FaTimes, FaSpinner,
+    FaShoppingCart, FaSave, FaMinusCircle, FaTruck, FaCheckCircle,
+    FaChevronDown, FaTimesCircle, FaHourglassStart // Thêm icon nếu cần
+} from 'react-icons/fa';
+import { API_PATHS, BASE_URL } from '../../utils/apiPath'; // Đảm bảo đường dẫn này chính xác
 
-// ----- Constants & UI Components -----
+// ----- Hằng số & Thành phần UI -----
 const commonInputClass = "block w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed";
 const commonLabelClass = "block text-sm font-medium text-gray-700 mb-1";
 const requiredSpan = <span className="text-red-500 ml-0.5">*</span>;
@@ -44,8 +48,51 @@ const initialFormData = {
     customerName: '',
     customerPhone: '',
     customerAddress: '',
-    products: [initialProductLine],
+    products: [{ ...initialProductLine }],
 };
+
+// Định nghĩa các giá trị trạng thái (value)
+const UI_ORDER_STATUS_VALUES = {
+    PROCESSING: 'processing', // Đang giao
+    COMPLETED: 'completed',   // Đã giao
+    CANCELLED: 'cancelled', // Đã hủy (nếu API có trả về)
+    // PENDING: 'pending',    // Chờ xử lý
+};
+
+// Cấu hình chi tiết cho từng trạng thái để hiển thị
+const ORDER_STATUS_CONFIG = {
+    [UI_ORDER_STATUS_VALUES.PROCESSING]: {
+        label: 'Đang giao',
+        icon: FaTruck,
+        className: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+        dropdownClassName: 'hover:bg-blue-50 text-blue-700',
+    },
+    [UI_ORDER_STATUS_VALUES.COMPLETED]: {
+        label: 'Đã giao',
+        icon: FaCheckCircle,
+        className: 'bg-green-100 text-green-700 hover:bg-green-200',
+        dropdownClassName: 'hover:bg-green-50 text-green-700',
+    },
+    [UI_ORDER_STATUS_VALUES.CANCELLED]: {
+        label: 'Đã hủy',
+        icon: FaTimesCircle,
+        className: 'bg-red-100 text-red-700 cursor-not-allowed',
+        dropdownClassName: 'text-red-700 cursor-not-allowed',
+    },
+    // [UI_ORDER_STATUS_VALUES.PENDING]: {
+    //     label: 'Chờ xử lý',
+    //     icon: FaHourglassStart,
+    //     className: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+    //     dropdownClassName: 'hover:bg-yellow-50 text-yellow-700',
+    // },
+};
+
+// Các trạng thái người dùng có thể chọn từ dropdown
+const SELECTABLE_UI_STATUSES = [
+    UI_ORDER_STATUS_VALUES.PROCESSING,
+    UI_ORDER_STATUS_VALUES.COMPLETED,
+    // UI_ORDER_STATUS_VALUES.PENDING,
+];
 
 const SalesOrders = () => {
     const [addEditModal, setAddEditModal] = useState(null);
@@ -57,9 +104,11 @@ const SalesOrders = () => {
     const [currentOrderId, setCurrentOrderId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [productsData, setProductsData] = useState([]);
+    const [localOrderStatuses, setLocalOrderStatuses] = useState({});
+    const [activeStatusDropdown, setActiveStatusDropdown] = useState(null);
     const token = localStorage.getItem('token');
+    const statusDropdownRef = useRef(null);
 
-    // --- Modal Handling ---
     const fetchProductsForModal = useCallback(async () => {
         try {
             const productsRes = await axios.get(`${BASE_URL}${API_PATHS.PRODUCT.GET_ALL_PRODUCTS}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -102,53 +151,74 @@ const SalesOrders = () => {
 
     useEffect(() => {
         const handleEscapeKey = (event) => {
-            if (event.key === 'Escape') handleCloseModal();
+            if (event.key === 'Escape' && addEditModal) handleCloseModal();
         };
-        if (addEditModal) document.addEventListener('keydown', handleEscapeKey);
+        document.addEventListener('keydown', handleEscapeKey);
         return () => document.removeEventListener('keydown', handleEscapeKey);
     }, [addEditModal, handleCloseModal]);
 
-    // --- Data Fetching ---
     const fetchOrders = useCallback(async () => {
         setIsLoadingData(true);
         try {
             const endpoint = `${BASE_URL}${API_PATHS.SALES_ORDER.GET_ALL}`;
             const response = await axios.get(endpoint, { headers: { "Authorization": `Bearer ${token}` } });
-            const data = response.data?.data || response.data || [];
-            if (Array.isArray(data)) {
-                setOrders(data);
-                setFilteredOrders(data);
+            const fetchedOrders = response.data?.data || response.data || [];
+
+            if (Array.isArray(fetchedOrders)) {
+                setOrders(fetchedOrders);
+                setFilteredOrders(fetchedOrders);
+
+                const initialStatuses = {};
+                fetchedOrders.forEach(order => {
+                    if (order.status && ORDER_STATUS_CONFIG[order.status]) {
+                        initialStatuses[order._id] = order.status;
+                    } else {
+                        initialStatuses[order._id] = UI_ORDER_STATUS_VALUES.PROCESSING;
+                    }
+                });
+                setLocalOrderStatuses(initialStatuses);
             } else {
-                console.warn("Dữ liệu đơn hàng bán không hợp lệ:", response.data);
                 toast.error("Không thể tải dữ liệu đơn hàng bán.");
-                setOrders([]);
-                setFilteredOrders([]);
+                setOrders([]); setFilteredOrders([]); setLocalOrderStatuses({});
             }
         } catch (err) {
             toast.error(err.response?.data?.message || "Lỗi tải danh sách đơn hàng bán.");
+            setOrders([]); setFilteredOrders([]); setLocalOrderStatuses({});
         } finally {
             setIsLoadingData(false);
         }
     }, [token]);
 
-    useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
+    useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-    // --- Form Handling for Modal ---
     const handleFormInputChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     }, []);
 
-    const handleProductDetailChange = useCallback((product, field, value) => {
-        setFormData(prev => ({
-            ...prev,
-            products: prev.products.map(p =>
-                p.product === product ? { ...p, [field]: value } : p
-            )
-        }));
-    }, []);
+    const handleProductDetailChange = useCallback((index, field, value) => {
+        setFormData(prev => {
+            const newProducts = prev.products.map((p, i) => {
+                if (i === index) {
+                    if (field === 'product') {
+                        const selectedProductData = productsData.find(pd => pd._id === value);
+                        return {
+                            ...p,
+                            product: value,
+                            unitPrice: selectedProductData ? (selectedProductData.sellingPrice ?? selectedProductData.price ?? 0) : 0,
+                            quantity: p.quantity || 1,
+                        };
+                    }
+                    if (field === 'quantity') {
+                        return { ...p, quantity: value === '' ? '' : parseInt(value, 10) };
+                    }
+                    return { ...p, [field]: value };
+                }
+                return p;
+            });
+            return { ...prev, products: newProducts };
+        });
+    }, [productsData]);
 
     const handleAddProductLine = useCallback(() => {
         setFormData(prev => ({
@@ -157,27 +227,29 @@ const SalesOrders = () => {
         }));
     }, []);
 
-    const handleRemoveProductLine = useCallback((product) => {
+    const handleRemoveProductLine = useCallback((indexToRemove) => {
         if (formData.products.length <= 1) {
             toast.error("Phải có ít nhất một sản phẩm trong đơn hàng.");
             return;
         }
         setFormData(prev => ({
             ...prev,
-            products: prev.products.filter(p => p.product !== product.product)
+            products: prev.products.filter((_, index) => index !== indexToRemove)
         }));
     }, [formData.products]);
 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
-        if (!formData.customerName) {
-            toast.error("Vui lòng nhập tên khách hàng.");
-            return;
+        if (!formData.customerName.trim()) {
+            toast.error("Vui lòng nhập tên khách hàng."); return;
         }
-        if (formData.products.some(p => !p.product || p.quantity <= 0 || p.unitPrice < 0)) {
-            toast.error("Thông tin sản phẩm không hợp lệ (Sản phẩm, SL > 0, Đơn giá >= 0).");
-            return;
+        for (const p of formData.products) {
+            if (!p.product) { toast.error("Vui lòng chọn sản phẩm cho tất cả các dòng."); return; }
+            const quantityToSubmit = (p.quantity === '' || p.quantity === null || isNaN(p.quantity) || Number(p.quantity) <= 0) ? 1 : Number(p.quantity);
+            if (quantityToSubmit <= 0) { toast.error(`Số lượng phải lớn hơn 0.`); return; }
+            if (p.unitPrice === null || p.unitPrice < 0 || isNaN(p.unitPrice)) { toast.error(`Đơn giá không hợp lệ.`); return; }
         }
+
         setIsSubmitting(true);
         const payload = {
             customerName: formData.customerName,
@@ -185,18 +257,29 @@ const SalesOrders = () => {
             customerAddress: formData.customerAddress,
             products: formData.products.map(({ product, quantity, unitPrice }) => ({
                 product,
-                quantity: Number(quantity),
+                quantity: (quantity === '' || quantity === null || isNaN(quantity) || Number(quantity) <= 0) ? 1 : Number(quantity),
                 unitPrice: Number(unitPrice)
-            }))
+            })),
         };
+
         try {
             const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
+            let createdOrUpdatedOrderData;
             if (addEditModal === 'EDIT' && currentOrderId) {
-                await axios.put(`${BASE_URL}${API_PATHS.SALES_ORDER.UPDATE(currentOrderId)}`, payload, { headers });
+                const response = await axios.put(`${BASE_URL}${API_PATHS.SALES_ORDER.UPDATE(currentOrderId)}`, payload, { headers });
+                createdOrUpdatedOrderData = response.data?.data || response.data;
                 toast.success("Cập nhật đơn hàng bán thành công!");
             } else if (addEditModal === 'ADD') {
-                await axios.post(`${BASE_URL}${API_PATHS.SALES_ORDER.CREATE}`, payload, { headers });
+                const response = await axios.post(`${BASE_URL}${API_PATHS.SALES_ORDER.CREATE}`, payload, { headers });
+                createdOrUpdatedOrderData = response.data?.data || response.data;
                 toast.success("Tạo đơn hàng bán thành công!");
+
+                if (createdOrUpdatedOrderData && createdOrUpdatedOrderData._id) {
+                    setLocalOrderStatuses(prev => ({
+                        ...prev,
+                        [createdOrUpdatedOrderData._id]: UI_ORDER_STATUS_VALUES.PROCESSING
+                    }));
+                }
             }
             handleCloseModal();
             fetchOrders();
@@ -207,13 +290,17 @@ const SalesOrders = () => {
         }
     }, [formData, addEditModal, currentOrderId, token, handleCloseModal, fetchOrders]);
 
-    // --- Delete Handling ---
     const handleDelete = useCallback(async (orderId) => {
         if (window.confirm("Bạn chắc chắn muốn xóa đơn hàng bán này?")) {
             setIsSubmitting(true);
             try {
                 await axios.delete(`${BASE_URL}${API_PATHS.SALES_ORDER.DELETE(orderId)}`, { headers: { "Authorization": `Bearer ${token}` } });
                 toast.success("Xóa đơn hàng bán thành công!");
+                setLocalOrderStatuses(prev => {
+                    const newStatuses = { ...prev };
+                    delete newStatuses[orderId];
+                    return newStatuses;
+                });
                 fetchOrders();
             } catch (error) {
                 toast.error(error.response?.data?.message || "Xóa đơn hàng bán thất bại.");
@@ -223,14 +310,45 @@ const SalesOrders = () => {
         }
     }, [token, fetchOrders]);
 
-    // --- Search/Filter ---
+    const toggleStatusDropdown = (orderId) => {
+        setActiveStatusDropdown(prev => (prev === orderId ? null : orderId));
+    };
+
+    const handleChangeDisplayStatus = useCallback((orderId, newStatus) => {
+        const orderFromApi = orders.find(o => o._id === orderId);
+        if (orderFromApi && orderFromApi.status === UI_ORDER_STATUS_VALUES.CANCELLED) {
+            toast.info("Không thể thay đổi trạng thái của đơn hàng đã hủy.");
+            setActiveStatusDropdown(null);
+            return;
+        }
+
+        setLocalOrderStatuses(prevStatuses => ({
+            ...prevStatuses,
+            [orderId]: newStatus
+        }));
+        setActiveStatusDropdown(null);
+
+        const statusLabel = ORDER_STATUS_CONFIG[newStatus]?.label || newStatus;
+        toast.success(`Trạng thái: "${statusLabel}".`);
+    }, [orders]);
+
     useEffect(() => {
-        const lowercasedFilter = searchTerm.toLowerCase();
-        if (searchTerm.trim() === '') {
+        const handleClickOutside = (event) => {
+            if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target) && activeStatusDropdown) {
+                setActiveStatusDropdown(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [activeStatusDropdown]);
+
+    useEffect(() => {
+        const lowercasedFilter = searchTerm.toLowerCase().trim();
+        if (lowercasedFilter === '') {
             setFilteredOrders(orders);
         } else {
             const filtered = orders.filter(order =>
-                (order.soCode && order.soCode.toLowerCase().includes(lowercasedFilter)) ||
+                (order.orderNumber && order.orderNumber.toLowerCase().includes(lowercasedFilter)) ||
                 (order.customerName && order.customerName.toLowerCase().includes(lowercasedFilter)) ||
                 (order._id && order._id.toLowerCase().includes(lowercasedFilter))
             );
@@ -240,7 +358,6 @@ const SalesOrders = () => {
 
     const handleSearchChange = useCallback((e) => setSearchTerm(e.target.value), []);
 
-    // --- Render Helpers ---
     const isEditing = addEditModal === 'EDIT';
     const modalTitle = isEditing ? "Chỉnh Sửa Đơn Hàng Bán" : "Tạo Đơn Hàng Bán Mới";
     const submitButtonText = isEditing ? "Lưu Thay Đổi" : "Tạo Đơn Hàng";
@@ -272,6 +389,7 @@ const SalesOrders = () => {
                     </button>
                 </div>
             </div>
+
             {/* Content Area */}
             {isLoadingData && orders.length === 0 && !addEditModal ? <LoadingState />
                 : !isLoadingData && orders.length === 0 && !searchTerm ? <NoOrdersState onAdd={handleOpenAddModal} disabled={isAnyTaskRunning} />
@@ -281,40 +399,85 @@ const SalesOrders = () => {
                                 <table className="w-full text-sm text-left text-slate-700">
                                     <thead className="text-xs text-white uppercase bg-primary whitespace-nowrap">
                                         <tr>
-                                            {['#', 'Mã ĐH', 'Khách Hàng', 'SĐT', 'Ngày Tạo', 'Tổng Tiền', 'Hành Động'].map(header => (
+                                            {['#', 'Mã ĐH', 'Khách Hàng', 'SĐT', 'Ngày Tạo', 'Tổng Tiền', 'Trạng Thái', 'Hành Động'].map(header => (
                                                 <th key={header} scope="col" className="px-4 py-3 first:rounded-tl-lg last:rounded-tr-lg">{header}</th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredOrders.map((order, index) => (
-                                            <tr key={order._id} className="bg-white border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
-                                                <td className="px-4 py-3 text-slate-500">{index + 1}</td>
-                                                <td className="px-4 py-3 font-medium text-slate-900">{order.soCode || order._id.slice(-6).toUpperCase()}</td>
-                                                <td className="px-4 py-3 text-slate-600">{order.customerName || 'N/A'}</td>
-                                                <td className="px-4 py-3 text-slate-600">{order.customerPhone || 'N/A'}</td>
-                                                <td className="px-4 py-3 text-slate-600">{new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
-                                                <td className="px-4 py-3 text-slate-600 font-semibold text-green-600">
-                                                    {(order.totalAmount || 0).toLocaleString('vi-VN')}₫
-                                                </td>
-                                                <td className="px-4 py-3 text-center">
-                                                    <div className="flex items-center justify-center gap-1 sm:gap-2">
+                                        {filteredOrders.map((order, index) => {
+                                            const currentDisplayStatus = localOrderStatuses[order._id] || UI_ORDER_STATUS_VALUES.PROCESSING;
+                                            const statusConfig = ORDER_STATUS_CONFIG[currentDisplayStatus] || ORDER_STATUS_CONFIG[UI_ORDER_STATUS_VALUES.PROCESSING];
+                                            const isActuallyCancelled = order.status === UI_ORDER_STATUS_VALUES.CANCELLED;
+
+                                            return (
+                                                <tr key={order._id} className="bg-white border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                                                    <td className="px-4 py-3 text-slate-500">{index + 1}</td>
+                                                    <td className="px-4 py-3 font-medium text-slate-900">{order.orderNumber || order.soCode || order._id.slice(-6).toUpperCase()}</td>
+                                                    <td className="px-4 py-3 text-slate-600">{order.customerName || 'N/A'}</td>
+                                                    <td className="px-4 py-3 text-slate-600">{order.customerPhone || 'N/A'}</td>
+                                                    <td className="px-4 py-3 text-slate-600">{new Date(order.orderDate || order.createdAt).toLocaleDateString('vi-VN')}</td>
+                                                    <td className="px-4 py-3 text-slate-600 font-semibold text-green-600">
+                                                        {(order.totalAmount || 0).toLocaleString('vi-VN')}₫
+                                                    </td>
+                                                    <td className="px-4 py-3 relative">
                                                         <button
-                                                            title="Chỉnh sửa"
-                                                            className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            onClick={() => handleOpenEditModal(order)}
-                                                            disabled={isAnyTaskRunning}
-                                                        > <FaEdit size={16} /> </button>
-                                                        <button
-                                                            title="Xóa"
-                                                            className="p-1.5 sm:p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                            onClick={() => handleDelete(order._id)}
-                                                            disabled={isAnyTaskRunning}
-                                                        > <FaTrashAlt size={16} /> </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                                            onClick={() => !isActuallyCancelled && toggleStatusDropdown(order._id)}
+                                                            disabled={isAnyTaskRunning || isActuallyCancelled}
+                                                            title={isActuallyCancelled ? "Đã hủy (không thể đổi)" : `Trạng thái: ${statusConfig.label}. Nhấn để đổi.`}
+                                                            className={`min-w-[100px] flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-full transition-opacity
+                                                            ${statusConfig.className}
+                                                            ${(isAnyTaskRunning || isActuallyCancelled) ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}
+                                                        `}
+                                                        >
+                                                            {statusConfig.icon && <statusConfig.icon className="inline -mt-0.5" />}
+                                                            {statusConfig.label}
+                                                            {!isActuallyCancelled && <FaChevronDown className="ml-1 text-xs" />}
+                                                        </button>
+                                                        {activeStatusDropdown === order._id && !isActuallyCancelled && (
+                                                            <div
+                                                                ref={statusDropdownRef}
+                                                                className="absolute z-10 mt-1 w-36 bg-white rounded-md shadow-lg border border-gray-200 right-0 sm:left-0"
+                                                            >
+                                                                <ul className="py-1 text-sm text-gray-700">
+                                                                    {SELECTABLE_UI_STATUSES.map(statusValue => {
+                                                                        const selectableConfig = ORDER_STATUS_CONFIG[statusValue];
+                                                                        if (!selectableConfig) return null;
+                                                                        return (
+                                                                            <li key={statusValue}>
+                                                                                <button
+                                                                                    onClick={() => handleChangeDisplayStatus(order._id, statusValue)}
+                                                                                    className={`w-full text-left flex items-center gap-2 px-3 py-1.5 ${selectableConfig.dropdownClassName} ${currentDisplayStatus === statusValue ? 'bg-gray-100 font-semibold' : ''}`}
+                                                                                >
+                                                                                    {selectableConfig.icon && <selectableConfig.icon className="inline" />}
+                                                                                    {selectableConfig.label}
+                                                                                </button>
+                                                                            </li>
+                                                                        );
+                                                                    })}
+                                                                </ul>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <div className="flex items-center justify-center gap-1 sm:gap-2">
+                                                            <button
+                                                                title="Chỉnh sửa"
+                                                                className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                onClick={() => handleOpenEditModal(order)}
+                                                                disabled={isAnyTaskRunning || currentDisplayStatus === UI_ORDER_STATUS_VALUES.COMPLETED || isActuallyCancelled}
+                                                            > <FaEdit size={16} /> </button>
+                                                            <button
+                                                                title="Xóa"
+                                                                className="p-1.5 sm:p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                onClick={() => handleDelete(order._id)}
+                                                                disabled={isAnyTaskRunning || currentDisplayStatus === UI_ORDER_STATUS_VALUES.COMPLETED || isActuallyCancelled}
+                                                            > <FaTrashAlt size={16} /> </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )
+                                        })}
                                     </tbody>
                                 </table>
                                 {isLoadingData && orders.length > 0 &&
@@ -324,6 +487,7 @@ const SalesOrders = () => {
                                 }
                             </div>
                         )}
+
             {/* Modal for Add/Edit Sales Order */}
             {addEditModal && (
                 <div
@@ -361,58 +525,66 @@ const SalesOrders = () => {
                             {/* Products Section */}
                             <div className="space-y-4 pt-3 border-t">
                                 <h3 className="text-lg font-medium text-slate-700">Chi Tiết Sản Phẩm</h3>
-                                {formData.products.map((item) => (
-                                    <div key={item.product + '-' + item.unitPrice + '-' + item.quantity} className="p-3 border border-slate-200 rounded-md bg-slate-50 space-y-3">
+                                {formData.products.map((item, index) => (
+                                    <div key={index} className="p-3 border border-slate-200 rounded-md bg-slate-50 space-y-3">
                                         <div className="grid grid-cols-1 md:grid-cols-[3fr_1fr_1.5fr_auto] gap-3 items-end">
                                             <div>
-                                                <label htmlFor={`product-${item.product}`} className={`${commonLabelClass} text-xs`}>Sản phẩm {requiredSpan}</label>
+                                                <label htmlFor={`product-select-${index}`} className={`${commonLabelClass} text-xs`}>Sản phẩm {requiredSpan}</label>
                                                 <select
-                                                    id={`product-${item.product}`}
+                                                    id={`product-select-${index}`}
                                                     value={item.product}
-                                                    onChange={(e) => handleProductDetailChange(item.product, 'product', e.target.value)}
+                                                    onChange={(e) => handleProductDetailChange(index, 'product', e.target.value)}
                                                     className={commonInputClass}
                                                     required
                                                     disabled={isSubmitting || productsData.length === 0}
                                                 >
                                                     <option value="">-- Chọn sản phẩm --</option>
-                                                    {productsData.map(p => <option key={p._id} value={p._id}>{p.name} (Tồn: {p.quantityInStock || 0}, Giá: {p.price?.toLocaleString('vi-VN') || 0}₫)</option>)}
+                                                    {productsData.map(p => <option key={p._id} value={p._id}>{p.name} (Tồn: {p.quantityInStock || 0}, Giá: {(p.sellingPrice ?? p.price ?? 0).toLocaleString('vi-VN')}₫)</option>)}
                                                 </select>
                                             </div>
                                             <div>
-                                                <label htmlFor={`quantity-${item.product}`} className={`${commonLabelClass} text-xs`}>Số Lượng {requiredSpan}</label>
+                                                <label htmlFor={`quantity-input-${index}`} className={`${commonLabelClass} text-xs`}>Số Lượng {requiredSpan}</label>
                                                 <input
-                                                    id={`quantity-${item.product}`}
+                                                    id={`quantity-input-${index}`}
                                                     type="number"
                                                     min="1"
+                                                    placeholder="1"
                                                     value={item.quantity}
-                                                    onChange={(e) => handleProductDetailChange(item.product, 'quantity', parseInt(e.target.value) || 1)}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        handleProductDetailChange(index, 'quantity', val === '' ? '' : (parseInt(val, 10) || 1));
+                                                    }}
                                                     className={commonInputClass}
                                                     required
                                                     disabled={isSubmitting}
                                                 />
                                             </div>
                                             <div>
-                                                <label htmlFor={`unitPrice-${item.product}`} className={`${commonLabelClass} text-xs`}>Đơn Giá Bán (VNĐ) {requiredSpan}</label>
+                                                <label htmlFor={`unitPrice-input-${index}`} className={`${commonLabelClass} text-xs`}>
+                                                    Đơn Giá Bán (VNĐ) {requiredSpan}
+                                                </label>
                                                 <input
-                                                    id={`unitPrice-${item.product}`}
+                                                    id={`unitPrice-input-${index}`}
                                                     type="number"
+                                                    step="any"
+                                                    min="0"
                                                     value={item.unitPrice ?? ''}
                                                     className={commonInputClass}
                                                     required
                                                     disabled={isSubmitting}
                                                     onChange={(e) => {
-                                                        const value = e.target.value;
-                                                        if (value === '') {
-                                                            handleProductDetailChange(item.product, 'unitPrice', null);
-                                                        } else {
-                                                            const numericValue = parseFloat(value);
-                                                            handleProductDetailChange(item.product, 'unitPrice', isNaN(numericValue) ? null : numericValue);
-                                                        }
-                                                    }} />
+                                                        const raw = e.target.value;
+                                                        handleProductDetailChange(
+                                                            index,
+                                                            'unitPrice',
+                                                            raw === '' ? null : Number(raw)
+                                                        );
+                                                    }}
+                                                />
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemoveProductLine(item)}
+                                                onClick={() => handleRemoveProductLine(index)}
                                                 className="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed h-10 self-end"
                                                 title="Xóa dòng sản phẩm này"
                                                 disabled={isSubmitting || formData.products.length <= 1}

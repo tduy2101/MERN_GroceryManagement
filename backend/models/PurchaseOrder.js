@@ -26,7 +26,8 @@ const purchaseOrderSchema = new mongoose.Schema({
             quantity: {
                 type: Number,
                 required: true,
-                min: 1
+                min: [1, 'Quantity must be at least 1'], // Validation ở backend
+                default: 1 // Giá trị mặc định nếu frontend không gửi
             },
             unitPrice: {
                 type: Number,

@@ -183,7 +183,7 @@ const PurchaseOrders = () => {
         setIsSubmitting(true);
         const payload = {
             supplier: formData.supplier,
-            products: formData.products.map(({ tempId, ...rest }) => ({
+            products: formData.products.map(({ ...rest }) => ({
                 product: rest.product,
                 quantity: Number(rest.quantity),
                 unitPrice: Number(rest.unitPrice)
@@ -362,7 +362,7 @@ const PurchaseOrders = () => {
                             {/* Products Section */}
                             <div className="space-y-4">
                                 <h3 className="text-lg font-medium text-slate-700 border-b pb-2">Chi Tiết Sản Phẩm</h3>
-                                {formData.products.map((item, index) => (
+                                {formData.products.map((item) => (
                                     <div key={item.tempId} className="p-3 border border-slate-200 rounded-md bg-slate-50 space-y-3">
                                         <div className="grid grid-cols-1 md:grid-cols-[3fr_1fr_1.5fr_auto] gap-3 items-end">
                                             <div>
@@ -384,9 +384,8 @@ const PurchaseOrders = () => {
                                                 <input
                                                     id={`quantity-${item.tempId}`}
                                                     type="number"
-                                                    min="1"
                                                     value={item.quantity}
-                                                    onChange={(e) => handleProductDetailChange(item.tempId, 'quantity', parseInt(e.target.value) || 1)}
+                                                    onChange={(e) => handleProductDetailChange(item.tempId, 'quantity', e.target.value)}
                                                     className={commonInputClass}
                                                     required
                                                     disabled={isSubmitting}

@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 8000;
 
 // Cấu hình middleware để cho phép CORS
 app.use(cors({
-    origin: process.env.CLIENT_URL || "*", // Cho phép domain từ biến môi trường, hoặc tất cả (*) nếu không có
+    origin: process.env.FRONTEND_URL || "*", // Cho phép domain từ biến môi trường, hoặc tất cả (*) nếu không có
     methods: ["GET", "POST", "PUT", "DELETE"], // Các HTTP method được phép
     allowedHeaders: ["Content-Type", "Authorization"] // Các header được chấp nhận từ client
 }));

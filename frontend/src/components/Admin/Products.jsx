@@ -453,12 +453,12 @@ const Products = () => {
                                 </div>
                                 <div>
                                     <label htmlFor="sellingPrice" className={commonLabelClass}>Giá Bán {requiredSpan}</label>
-                                    <input id="sellingPrice" name="sellingPrice" type="number" value={formData.sellingPrice} onChange={handleChange} placeholder="0" step="any" min="0" className={commonInputClass} required disabled={isSubmitting} />
+                                    <input id="sellingPrice" name="sellingPrice" type="number" value={formData.sellingPrice} onChange={handleChange} placeholder="VND" step="any" min="0" className={commonInputClass} required disabled={isSubmitting} />
                                 </div>
-                                <div>
+                                {/* <div>
                                     <label htmlFor="quantityInStock" className={commonLabelClass}>Số Lượng Tồn {requiredSpan}</label>
                                     <input id="quantityInStock" name="quantityInStock" type="number" value={formData.quantityInStock} onChange={handleChange} placeholder="0" step="1" min="0" className={commonInputClass} required disabled={isSubmitting} />
-                                </div>
+                                </div> */}
                                 <div>
                                     <label htmlFor="category" className={commonLabelClass}>Danh Mục {requiredSpan}</label>
                                     <select id="category" name="category" value={formData.category} onChange={handleChange} className={commonInputClass} required disabled={isSubmitting}>
@@ -543,8 +543,8 @@ const Products = () => {
                                     </div>
                                 )}
                             </div>
+                            
 
-                            {isEditing && (
                                 <div className="pt-4 border-t border-slate-200">
                                     <h3 className="text-md font-medium text-slate-700 mb-3">Thông Tin Bổ Sung</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
@@ -566,7 +566,6 @@ const Products = () => {
                                         </div>
                                     </div>
                                 </div>
-                            )}
 
                             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-5 mt-2 border-t border-slate-200">
                                 <button
