@@ -9,7 +9,7 @@ import {
 } from 'react-icons/fa';
 import { API_PATHS, BASE_URL } from '../../utils/apiPath'; // Đảm bảo đường dẫn này chính xác
 
-// ----- Hằng số & Thành phần UI -----
+// ----- Constants & UI Components -----
 const commonInputClass = "block w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed";
 const commonLabelClass = "block text-sm font-medium text-gray-700 mb-1";
 const requiredSpan = <span className="text-red-500 ml-0.5">*</span>;

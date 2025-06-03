@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
-import { API_PATHS, BASE_URL } from "../../utils/apiPath"; // Đảm bảo đường dẫn đúng
+import { API_PATHS, BASE_URL } from "../../utils/apiPath";
 import { FaEdit, FaTrashAlt, FaPlus, FaSpinner, FaExclamationTriangle, FaTags } from 'react-icons/fa';
 
 // ----- Constants -----
@@ -12,14 +12,14 @@ const commonLabelClass = "block text-sm font-medium text-gray-700 mb-1";
 const requiredSpan = <span className="text-red-500 ml-0.5">*</span>;
 
 // ----- UI Components -----
-const GlobalLoading = () => (
+const GlobalLoading = React.memo(() => (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-gray-500">
         <FaSpinner className="animate-spin text-5xl mb-4 text-primary" />
         <span className="text-lg">Đang tải danh mục...</span>
     </div>
-);
+));
 
-const GlobalError = ({ globalError, fetchCategories, isLoadingData }) => (
+const GlobalError = React.memo(({ globalError, fetchCategories, isLoadingData }) => (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center text-red-600 p-6 bg-red-50 rounded-lg shadow">
         <FaExclamationTriangle className="text-5xl mb-4" />
         <p className="text-xl font-semibold mb-2">Rất tiếc! Đã có lỗi xảy ra.</p>
@@ -32,15 +32,15 @@ const GlobalError = ({ globalError, fetchCategories, isLoadingData }) => (
             {isLoadingData ? <FaSpinner className="animate-spin" /> : 'Thử lại'}
         </button>
     </div>
-);
+));
 
-const NoCategories = () => (
+const NoCategories = React.memo(() => (
     <div className="flex flex-col items-center justify-center py-10 text-center text-gray-500">
         <FaTags className="text-5xl mb-4" />
         <p className="text-lg mb-1">Không tìm thấy danh mục nào.</p>
         <p className="text-sm">Bạn có thể bắt đầu bằng cách thêm danh mục mới.</p>
     </div>
-);
+));
 
 const Categories = () => {
     const [formData, setFormData] = useState(initialFormData);
@@ -50,7 +50,7 @@ const Categories = () => {
     const [globalError, setGlobalError] = useState(null);
     const [editingCategoryId, setEditingCategoryId] = useState(null);
 
-    // ----- Data Fetching -----
+    // Fetch all categories
     const fetchCategories = useCallback(async () => {
         setIsLoadingData(true);
         setGlobalError(null);
@@ -77,7 +77,7 @@ const Categories = () => {
         fetchCategories();
     }, [fetchCategories]);
 
-    // ----- Handlers -----
+    // Handlers
     const handleChange = useCallback((e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -163,16 +163,16 @@ const Categories = () => {
         }
     }, [fetchCategories]);
 
-    // ----- Render Logic -----
+    // Render Logic
     const isAnyTaskRunning = isSubmitting || isLoadingData;
 
     if (isLoadingData && categories.length === 0) return <GlobalLoading />;
     if (!isLoadingData && globalError && categories.length === 0) return <GlobalError globalError={globalError} fetchCategories={fetchCategories} isLoadingData={isLoadingData} />;
 
     return (
-        <div className='w-full min-h-screen flex flex-col gap-6 p-4 sm:p-6 bg-slate-50'> 
-            <div className="pb-4 border-b border-slate-200"> 
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Quản Lý Danh Mục</h1> 
+        <div className='w-full min-h-screen flex flex-col gap-6 p-4 sm:p-6 bg-slate-50'>
+            <div className="pb-4 border-b border-slate-200">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Quản Lý Danh Mục</h1>
             </div>
 
             {globalError && categories.length > 0 && (

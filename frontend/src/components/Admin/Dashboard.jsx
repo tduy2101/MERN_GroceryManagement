@@ -1,4 +1,4 @@
-// src/pages/Dashboard.jsx
+// src/components/Admin/Dashboard.jsx
 import React, { useEffect, useState, useContext, useCallback } from "react";
 import axios from "axios";
 import { Bar, Pie, Line } from "react-chartjs-2";
@@ -23,6 +23,7 @@ import {
 } from "react-icons/fa";
 import { Link } from 'react-router-dom';
 
+// Register ChartJS modules once
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -42,14 +43,14 @@ const chartColors = [
   '#22d3ee', '#a3e635', '#fbbf24'
 ];
 
-const LoadingState = ({ message = "Đang tải dữ liệu..." }) => (
+const LoadingState = React.memo(({ message = "Đang tải dữ liệu..." }) => (
   <div className="flex justify-center items-center min-h-[calc(100vh-150px)]">
     <FaSpinner className="animate-spin text-4xl text-primary" />
     <p className="ml-3 text-slate-600">{message}</p>
   </div>
-);
+));
 
-const ErrorState = ({ error, onRetry }) => (
+const ErrorState = React.memo(({ error, onRetry }) => (
   <div className="flex flex-col justify-center items-center min-h-[calc(100vh-150px)] p-6 text-center bg-red-50 rounded-lg">
     <FaExclamationTriangle className="text-5xl text-red-500 mb-4" />
     <h2 className="text-xl font-semibold text-red-700 mb-2">Không thể tải dữ liệu Dashboard</h2>
@@ -61,9 +62,9 @@ const ErrorState = ({ error, onRetry }) => (
       Thử lại
     </button>
   </div>
-);
+));
 
-const StatCard = ({ title, value, icon, colorClass = "text-primary", isLoading, unit = "" }) => (
+const StatCard = React.memo(({ title, value, icon, colorClass = "text-primary", isLoading, unit = "" }) => (
   <div className="bg-white p-5 sm:p-6 rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 flex items-center space-x-4">
     <div className={`p-3 rounded-full bg-opacity-20 ${colorClass.replace('text-', 'bg-').replace('-500', '-100').replace('-600', '-100')}`}>{React.cloneElement(icon, { className: `w-7 h-7 sm:w-8 sm:h-8 ${colorClass}` })}</div>
     <div>
@@ -78,9 +79,9 @@ const StatCard = ({ title, value, icon, colorClass = "text-primary", isLoading, 
       )}
     </div>
   </div>
-);
+));
 
-const QuickActionButton = ({ to, icon, label }) => (
+const QuickActionButton = React.memo(({ to, icon, label }) => (
   <Link
     to={to}
     className={`flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg shadow-md hover:bg-primary-dull transition-colors duration-200 font-medium text-sm`}
@@ -88,7 +89,7 @@ const QuickActionButton = ({ to, icon, label }) => (
     {icon}
     {label}
   </Link>
-);
+));
 
 // ----- Main Component -----
 const Dashboard = () => {
@@ -110,6 +111,7 @@ const Dashboard = () => {
     categoriesData: [],
   });
 
+  // Fetch all dashboard stats
   const fetchStatsData = useCallback(async () => {
     setIsLoadingStats(true);
     setErrorStats(null);
@@ -196,6 +198,7 @@ const Dashboard = () => {
     }
   };
 
+  // Helper: Get sales and purchases by day
   const getSalesAndPurchasesByDay = (days = 7) => {
     const labels = [];
     const salesData = [];
@@ -258,6 +261,7 @@ const Dashboard = () => {
     }
   };
 
+  // Helper: Get top selling products
   const getTopSellingProducts = (topN = 5) => {
     const productSales = {};
     stats.salesOrdersData.forEach(order => {
@@ -303,6 +307,7 @@ const Dashboard = () => {
     }
   };
 
+  // Pie chart: Product distribution by category
   const [productCategoryPieData, setProductCategoryPieData] = useState(null);
   useEffect(() => {
     if (stats.productsData.length > 0 && stats.categoriesData.length > 0) {

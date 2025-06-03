@@ -2,33 +2,39 @@ import React from "react";
 import { useAppContext } from "../../context/appContext";
 import { assets } from "../../assets/assets";
 
+// Hàm tiện ích để định dạng tiền tệ sang VND
+const formatVND = (price) => {
+    // Kiểm tra nếu price không phải là số hoặc là NaN
+    if (typeof price !== 'number' || isNaN(price)) {
+        // Bạn có thể trả về một giá trị mặc định khác nếu muốn, ví dụ 'Liên hệ'
+        return '0 đ';
+    }
+    return price.toLocaleString('vi-VN') + ' đ';
+};
+
 const ProductCard = ({ product }) => {
     const {
-        currency,
+        // currency, // Không cần dùng currency từ context nữa nếu cố định là VND
         cartItems,
         navigate,
-        addToCart, // Lấy hàm từ context
-        updateCartItemQuantity // Lấy hàm từ context
+        addToCart,
+        updateCartItemQuantity
     } = useAppContext();
 
-    // Kiểm tra nếu product hoặc product.category không tồn tại để tránh lỗi
-    // Điều này quan trọng nếu backend chưa populate category
     if (!product) {
-        return null; // Hoặc một UI placeholder/loading
+        return null;
     }
 
     const itemInCartQuantity = cartItems[product._id] || 0;
 
     const handleCardClick = () => {
-        // Đảm bảo product.category và product.category.name tồn tại
         const categoryName = product.category && product.category.name
             ? product.category.name.toLowerCase()
-            : 'unknown-category'; // Giá trị mặc định nếu không có category name
+            : 'unknown-category';
         navigate(`/products/${categoryName}/${product._id}`);
-        window.scrollTo(0, 0); // Dùng window.scrollTo
+        window.scrollTo(0, 0);
     };
 
-    // Ngăn sự kiện click lan ra thẻ div cha khi click nút trong card
     const handleAddToCartClick = (e) => {
         e.stopPropagation();
         addToCart(product._id, 1);
@@ -47,34 +53,35 @@ const ProductCard = ({ product }) => {
     return (
         <div
             onClick={handleCardClick}
-            className="border border-gray-500/20 rounded-md md:px-4 px-3 py-2 bg-white min-w-56 max-w-56 w-full flex flex-col cursor-pointer" // Thêm flex flex-col
+            className="border border-gray-500/20 rounded-md md:px-4 px-3 py-2 bg-white min-w-56 max-w-56 w-full flex flex-col cursor-pointer"
         >
-            <div className="group flex items-center justify-center px-2 h-36 md:h-48 flex-grow"> {/* Giới hạn chiều cao và flex-grow */}
+            <div className="group flex items-center justify-center px-2 h-36 md:h-48 flex-grow">
                 <img
-                    className="group-hover:scale-105 transition max-h-full max-w-full object-contain" // Đảm bảo ảnh vừa vặn
+                    className="group-hover:scale-105 transition max-h-full max-w-full object-contain"
                     src={product.imageUrl || assets.default_product_image}
                     alt={product.name}
                 />
             </div>
             <div className="text-gray-500/60 text-sm mt-2">
-                {/* Hiển thị tên category - quan trọng là product.category phải là object */}
                 <p>{product.category ? product.category.name : 'N/A'}</p>
-                <p className="text-gray-700 font-medium text-lg truncate w-full h-6"> {/* Giới hạn chiều cao cho tên SP */}
+                <p className="text-gray-700 font-medium text-lg truncate w-full h-6">
                     {product.name}
                 </p>
-                <div className="flex items-center gap-0.5 my-1"> {/* Thêm margin y */}
+                <div className="flex items-center gap-0.5 my-1">
                     {Array(5).fill('').map((_, i) => (
                         <img key={i} className="md:w-3.5 w-3" src={i < (product.rating || 4) ? assets.star_icon : assets.star_dull_icon} alt="" />
                     ))}
-                    {/* Bạn có thể muốn hiển thị product.rating thực tế thay vì (4) */}
                     <p>({product.ratingCount || 0})</p>
                 </div>
                 <div className="flex items-end justify-between mt-3">
                     <p className="md:text-xl text-base font-medium text-indigo-500">
-                        {currency}{product.sellingPrice.toFixed(2)}{" "}
-                        {product.costPrice > product.sellingPrice && ( // Chỉ hiện giá gốc nếu có giảm giá
+                        {/* Áp dụng hàm formatVND */}
+                        {formatVND(product.sellingPrice)}
+                        {" "}
+                        {product.costPrice > product.sellingPrice && (
                             <span className="text-gray-500/60 md:text-sm text-xs line-through">
-                                {currency}{product.costPrice.toFixed(2)}
+                                {/* Áp dụng hàm formatVND */}
+                                {formatVND(product.costPrice)}
                             </span>
                         )}
                     </p>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_PATHS, BASE_URL } from '../../utils/apiPath'; // Đảm bảo đường dẫn đúng
 import toast from 'react-hot-toast';
-import { FaEdit, FaTrashAlt, FaPlus, FaSearch, FaTimes, FaLink, FaSpinner, FaBoxOpen, FaImage, FaSave } from 'react-icons/fa'; // Thêm FaImage
+import { FaEdit, FaTrashAlt, FaPlus, FaSearch, FaTimes, FaLink, FaSpinner, FaBoxOpen, FaImage, FaSave } from 'react-icons/fa';
 import uploadImage from '../../utils/uploadImage'; // Đảm bảo đường dẫn đúng
 
 // ----- Constants & UI Components -----
@@ -12,25 +12,25 @@ const initialFormData = {
     description: '',
     sellingPrice: '',
     costPrice: '',
-    quantityInStock: '',
+    quantityInStock: '0', // Mặc định là 0 khi tạo mới
     imageUrl: '',
     category: '',
     supplier: '',
-    unit: 'Cái', // Đơn vị mặc định
-    lowStockThreshold: '10', // Ngưỡng tồn kho thấp mặc định
+    unit: 'Cái',
+    lowStockThreshold: '10',
 };
 const commonInputClass = "block w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary disabled:bg-slate-50 disabled:cursor-not-allowed";
 const commonLabelClass = "block text-sm font-medium text-gray-700 mb-1";
 const requiredSpan = <span className="text-red-500 ml-0.5">*</span>;
 
-const LoadingState = () => (
+const LoadingState = React.memo(() => (
     <div className="flex flex-col items-center justify-center py-10 text-slate-500">
         <FaSpinner className="animate-spin text-4xl mb-3 text-primary" />
         <span>Đang tải sản phẩm...</span>
     </div>
-);
+));
 
-const NoProductsState = ({ onAdd }) => (
+const NoProductsState = React.memo(({ onAdd }) => (
     <div className="flex flex-col items-center justify-center py-10 text-center text-slate-500">
         <FaBoxOpen className="text-5xl mb-4" />
         <p className="text-lg mb-1">Không tìm thấy sản phẩm nào.</p>
@@ -42,20 +42,20 @@ const NoProductsState = ({ onAdd }) => (
             <FaPlus /> Thêm Sản Phẩm Mới
         </button>
     </div>
-);
+));
 
-const NoSearchResultsState = () => (
+const NoSearchResultsState = React.memo(() => (
     <div className="flex flex-col items-center justify-center py-10 text-slate-500">
         <FaSearch className="text-5xl mb-3" />
         <span className="text-lg">Không có sản phẩm nào khớp với tìm kiếm.</span>
         <span className="text-sm">Hãy thử từ khóa khác hoặc xóa bộ lọc tìm kiếm.</span>
     </div>
-);
+));
 
 const Products = () => {
     const [addEditModal, setAddEditModal] = useState(null);
     const [formData, setFormData] = useState(initialFormData);
-    const [isLoadingData, setIsLoadingData] = useState(false); // Đổi tên từ loading để rõ ràng hơn
+    const [isLoadingData, setIsLoadingData] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [products, setProducts] = useState([]);
@@ -67,7 +67,7 @@ const Products = () => {
     const [imageFile, setImageFile] = useState(null);
 
     const handleOpenAddModal = useCallback(() => {
-        setFormData(initialFormData);
+        setFormData(initialFormData); // quantityInStock sẽ là '0'
         setImageFile(null);
         setCurrentProductId(null);
         setAddEditModal('ADD');
@@ -80,7 +80,7 @@ const Products = () => {
             description: product.description || '',
             sellingPrice: product.sellingPrice || '',
             costPrice: product.costPrice || '',
-            quantityInStock: product.quantityInStock || '',
+            quantityInStock: product.quantityInStock?.toString() || '0', // Lấy số lượng tồn hiện tại
             imageUrl: product.imageUrl || '',
             category: product.category?._id || product.category || '',
             supplier: product.supplier?._id || product.supplier || '',
@@ -115,7 +115,6 @@ const Products = () => {
     }, [addEditModal, handleCloseModal]);
 
     const fetchData = useCallback(async (endpoint, setter, entityName) => {
-        // setIsLoadingData(true) nên được gọi trong useEffect chính
         try {
             const response = await axios.get(`${BASE_URL}${endpoint}`, {
                 headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
@@ -139,7 +138,7 @@ const Products = () => {
     }, []);
 
     useEffect(() => {
-        setIsLoadingData(true); // Bắt đầu loading
+        setIsLoadingData(true);
         Promise.all([
             fetchData(API_PATHS.PRODUCT.GET_ALL_PRODUCTS, setProducts, 'products'),
             fetchData(API_PATHS.CATEGORY.GET_ALL_CATEGORIES, setCategories, 'categories'),
@@ -156,7 +155,6 @@ const Products = () => {
         const file = e.target.files[0];
         if (!file) {
             setImageFile(null);
-            // Không reset formData.imageUrl ở đây, người dùng có thể vẫn muốn giữ URL cũ nếu hủy chọn file
             return;
         }
 
@@ -165,23 +163,23 @@ const Products = () => {
         const toastId = toast.loading("Đang tải ảnh lên...");
 
         try {
-            const result = await uploadImage(file); // Gọi hàm uploadImage tiện ích
+            const result = await uploadImage(file);
             toast.dismiss(toastId);
             if (result.imageUrl) {
                 setFormData((prev) => ({ ...prev, imageUrl: result.imageUrl }));
                 toast.success("Tải ảnh lên thành công!");
             } else {
                 toast.error(result.message || 'Tải ảnh lên thất bại.');
-                setImageFile(null); // Xóa file nếu upload lỗi
+                setImageFile(null);
             }
         } catch (error) {
             toast.dismiss(toastId);
             console.error("Lỗi khi tải ảnh:", error);
             toast.error(error.response?.data?.message || "Tải ảnh lên thất bại.");
-            setImageFile(null); // Xóa file nếu upload lỗi
+            setImageFile(null);
         } finally {
             setIsUploadingImage(false);
-            if (e.target) e.target.value = null; // Reset input file để có thể chọn lại cùng file
+            if (e.target) e.target.value = null;
         }
     }, []);
 
@@ -193,9 +191,12 @@ const Products = () => {
 
     const handleSubmit = useCallback(async (e) => {
         e.preventDefault();
-        const { name, sellingPrice, quantityInStock, category: categoryId } = formData;
-        if (!name || !sellingPrice || !quantityInStock || !categoryId) {
-            toast.error("Tên, Giá bán, Số lượng tồn và Danh mục là bắt buộc.");
+        // Bỏ quantityInStock ra khỏi destructuring để validate, nhưng nó vẫn có trong formData
+        const { name, sellingPrice, category: categoryId } = formData;
+
+        // Sửa điều kiện validate: không yêu cầu quantityInStock nữa
+        if (!name || !sellingPrice || !categoryId) {
+            toast.error("Tên, Giá bán và Danh mục là bắt buộc.");
             return;
         }
         if (isUploadingImage) {
@@ -203,7 +204,7 @@ const Products = () => {
             return;
         }
 
-        const normalizedFormName = name.trim().toLowerCase();
+        const normalizedFormName = formData.name.trim().toLowerCase(); // Lấy name từ formData
         let isNameDuplicate = false;
 
         if (addEditModal === 'ADD') {
@@ -213,22 +214,24 @@ const Products = () => {
         } else if (addEditModal === 'EDIT' && currentProductId) {
             isNameDuplicate = products.some(
                 (product) =>
-                    product._id !== currentProductId && 
+                    product._id !== currentProductId &&
                     product.name.trim().toLowerCase() === normalizedFormName
             );
         }
 
         if (isNameDuplicate) {
             toast.error("Tên sản phẩm đã tồn tại. Vui lòng chọn tên khác.");
-            return; 
+            return;
         }
 
         setIsSubmitting(true);
         const productData = {
             ...formData,
-            name: formData.name.trim(), 
+            name: formData.name.trim(),
             sellingPrice: parseFloat(formData.sellingPrice) || 0,
             costPrice: parseFloat(formData.costPrice) || 0,
+            // quantityInStock sẽ lấy từ formData (mặc định là '0' khi thêm mới, hoặc giá trị hiện tại khi sửa)
+            // và được parse thành số nguyên
             quantityInStock: parseInt(formData.quantityInStock, 10) || 0,
             lowStockThreshold: parseInt(formData.lowStockThreshold, 10) || 0,
             category: categoryId,
@@ -248,11 +251,10 @@ const Products = () => {
                 toast.success("Thêm sản phẩm thành công!");
             }
             handleCloseModal();
-            // Cập nhật lại searchTerm để đảm bảo filter hoạt động đúng sau khi thêm/sửa
             const currentSearchTerm = searchTerm;
-            setSearchTerm(''); // Xóa searchTerm tạm thời để fetch lại toàn bộ
+            setSearchTerm('');
             await fetchData(API_PATHS.PRODUCT.GET_ALL_PRODUCTS, setProducts, 'products');
-            setSearchTerm(currentSearchTerm); // Khôi phục searchTerm
+            setSearchTerm(currentSearchTerm);
         } catch (error) {
             console.error("Lỗi khi gửi form sản phẩm:", error);
             toast.error(error.response?.data?.message || "Thao tác thất bại. Vui lòng thử lại.");
@@ -266,7 +268,7 @@ const Products = () => {
         currentProductId,
         handleCloseModal,
         fetchData,
-        products, 
+        products,
         searchTerm
     ]);
 
@@ -336,7 +338,7 @@ const Products = () => {
                             value={searchTerm}
                             onChange={handleSearchChange}
                             className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                            disabled={isLoadingData && products.length === 0} // Disable nếu đang load và chưa có sp nào
+                            disabled={isLoadingData && products.length === 0}
                         />
                         <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     </div>
@@ -426,7 +428,7 @@ const Products = () => {
                     onClick={handleCloseModal}
                 >
                     <div
-                        className="bg-white my-auto p-5 sm:p-6 rounded-xl shadow-2xl w-full max-w-xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-100" // Đổi màu scrollbar
+                        className="bg-white my-auto p-5 sm:p-6 rounded-xl shadow-2xl w-full max-w-xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-400 scrollbar-track-slate-100"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex justify-between items-center mb-5 sm:mb-6 pb-3 border-b border-slate-200">
@@ -455,10 +457,13 @@ const Products = () => {
                                     <label htmlFor="sellingPrice" className={commonLabelClass}>Giá Bán {requiredSpan}</label>
                                     <input id="sellingPrice" name="sellingPrice" type="number" value={formData.sellingPrice} onChange={handleChange} placeholder="VND" step="any" min="0" className={commonInputClass} required disabled={isSubmitting} />
                                 </div>
-                                {/* <div>
+                                {/* TRƯỜNG SỐ LƯỢNG TỒN ĐÃ ĐƯỢC BỎ KHỎI FORM - NÓ SẼ LẤY GIÁ TRỊ MẶC ĐỊNH HOẶC GIÁ TRỊ HIỆN TẠI */}
+                                {/* 
+                                <div>
                                     <label htmlFor="quantityInStock" className={commonLabelClass}>Số Lượng Tồn {requiredSpan}</label>
                                     <input id="quantityInStock" name="quantityInStock" type="number" value={formData.quantityInStock} onChange={handleChange} placeholder="0" step="1" min="0" className={commonInputClass} required disabled={isSubmitting} />
-                                </div> */}
+                                </div> 
+                                */}
                                 <div>
                                     <label htmlFor="category" className={commonLabelClass}>Danh Mục {requiredSpan}</label>
                                     <select id="category" name="category" value={formData.category} onChange={handleChange} className={commonInputClass} required disabled={isSubmitting}>
@@ -487,14 +492,14 @@ const Products = () => {
                                         <input
                                             id="productImageFile"
                                             type="file"
-                                            accept="image/jpeg, image/png, image/jpg, image/webp" // Thêm webp
+                                            accept="image/jpeg, image/png, image/jpg, image/webp"
                                             onChange={handleImageFileChange}
                                             className="block w-full text-sm text-slate-500
                                                 file:mr-3 file:py-2 file:px-4
                                                 file:rounded-md file:border-0
                                                 file:text-sm file:font-semibold
                                                 file:bg-primary-light file:text-primary  
-                                                hover:file:bg-primary-light/80 cursor-pointer file:transition-colors" // Giả sử có primary-light
+                                                hover:file:bg-primary-light/80 cursor-pointer file:transition-colors"
                                             disabled={isUploadingImage || isSubmitting}
                                         />
                                         {isUploadingImage && <FaSpinner className="animate-spin text-primary text-xl" />}
@@ -536,36 +541,36 @@ const Products = () => {
                                             alt="Xem trước"
                                             className="w-28 h-28 sm:w-32 sm:h-32 object-cover rounded-lg border border-slate-300 shadow-sm bg-slate-50"
                                             onError={(e) => {
-                                                e.target.onerror = null; // Ngăn lặp vô hạn nếu ảnh mặc định cũng lỗi
+                                                e.target.onerror = null;
                                                 e.target.src = 'https://via.placeholder.com/128?text=URL+Lỗi';
                                             }}
                                         />
                                     </div>
                                 )}
                             </div>
-                            
 
-                                <div className="pt-4 border-t border-slate-200">
-                                    <h3 className="text-md font-medium text-slate-700 mb-3">Thông Tin Bổ Sung</h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
-                                        <div>
-                                            <label htmlFor="sku" className={commonLabelClass}>Mã SKU</label>
-                                            <input id="sku" name="sku" type="text" value={formData.sku} onChange={handleChange} placeholder="VD: SP001" className={commonInputClass} disabled={isSubmitting} />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="costPrice" className={commonLabelClass}>Giá Vốn</label>
-                                            <input id="costPrice" name="costPrice" type="number" value={formData.costPrice} onChange={handleChange} placeholder="0" step="any" min="0" className={commonInputClass} disabled={isSubmitting} />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="unit" className={commonLabelClass}>Đơn Vị Tính</label>
-                                            <input id="unit" name="unit" type="text" value={formData.unit} onChange={handleChange} placeholder="VD: Cái, Hộp, Kg" className={commonInputClass} disabled={isSubmitting} />
-                                        </div>
-                                        <div>
-                                            <label htmlFor="lowStockThreshold" className={commonLabelClass}>Ngưỡng Tồn Kho Thấp</label>
-                                            <input id="lowStockThreshold" name="lowStockThreshold" type="number" value={formData.lowStockThreshold} onChange={handleChange} placeholder="10" step="1" min="0" className={commonInputClass} disabled={isSubmitting} />
-                                        </div>
+
+                            <div className="pt-4 border-t border-slate-200">
+                                <h3 className="text-md font-medium text-slate-700 mb-3">Thông Tin Bổ Sung</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+                                    <div>
+                                        <label htmlFor="sku" className={commonLabelClass}>Mã SKU</label>
+                                        <input id="sku" name="sku" type="text" value={formData.sku} onChange={handleChange} placeholder="VD: SP001" className={commonInputClass} disabled={isSubmitting} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="costPrice" className={commonLabelClass}>Giá Vốn</label>
+                                        <input id="costPrice" name="costPrice" type="number" value={formData.costPrice} onChange={handleChange} placeholder="0" step="any" min="0" className={commonInputClass} disabled={isSubmitting} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="unit" className={commonLabelClass}>Đơn Vị Tính</label>
+                                        <input id="unit" name="unit" type="text" value={formData.unit} onChange={handleChange} placeholder="VD: Cái, Hộp, Kg" className={commonInputClass} disabled={isSubmitting} />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="lowStockThreshold" className={commonLabelClass}>Ngưỡng Tồn Kho Thấp</label>
+                                        <input id="lowStockThreshold" name="lowStockThreshold" type="number" value={formData.lowStockThreshold} onChange={handleChange} placeholder="10" step="1" min="0" className={commonInputClass} disabled={isSubmitting} />
                                     </div>
                                 </div>
+                            </div>
 
                             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-5 mt-2 border-t border-slate-200">
                                 <button

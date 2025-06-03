@@ -49,7 +49,6 @@ export const createSalesOrder = async (req, res) => {
     try {
         // Kiểm tra req.user
         if (!req.user || !req.user._id) {
-            console.error("[Controller] Authentication error: req.user or req.user._id is missing.");
             return res.status(401).json({ message: "Lỗi xác thực: Người dùng không hợp lệ hoặc thiếu thông tin." });
         }
 
@@ -80,7 +79,6 @@ export const createSalesOrder = async (req, res) => {
 
         res.status(201).json(newOrder);
     } catch (err) {
-        console.error("[Controller] Error creating sales order:", err);
         if (err.code === 11000) {
             return res.status(400).json({ message: "Lỗi tạo đơn hàng: Mã đơn hàng hoặc thông tin khác bị trùng lặp.", details: err.keyValue });
         }

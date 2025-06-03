@@ -11,14 +11,14 @@ const commonInputClass = "block w-full px-3 py-2 text-sm bg-white border border-
 const commonLabelClass = "block text-sm font-medium text-gray-700 mb-1";
 const requiredSpan = <span className="text-red-500 ml-0.5">*</span>;
 
-const LoadingState = () => (
+const LoadingState = React.memo(() => (
     <div className="flex flex-col items-center justify-center py-10 text-slate-500">
         <FaSpinner className="animate-spin text-4xl mb-3 text-primary" />
         <span>Đang tải danh sách phiếu nhập...</span>
     </div>
-);
+));
 
-const NoOrdersState = ({ onAdd, disabled }) => (
+const NoOrdersState = React.memo(({ onAdd, disabled }) => (
     <div className="flex flex-col items-center justify-center py-10 text-center text-slate-500">
         <FaBoxOpen className="text-5xl mb-4" />
         <p className="text-lg mb-1">Chưa có phiếu nhập nào.</p>
@@ -31,14 +31,14 @@ const NoOrdersState = ({ onAdd, disabled }) => (
             <FaPlus /> Tạo Phiếu Nhập Mới
         </button>
     </div>
-);
+));
 
-const NoSearchResultsState = () => (
+const NoSearchResultsState = React.memo(() => (
     <div className="flex flex-col items-center justify-center py-10 text-slate-500">
         <FaSearch className="text-5xl mb-3" />
         <span className="text-lg">Không có phiếu nhập nào khớp với tìm kiếm.</span>
     </div>
-);
+));
 
 const initialProductLine = { product: '', quantity: 1, unitPrice: 0, tempId: Date.now().toString() + Math.random().toString(36).substring(2) };
 const initialFormData = {
