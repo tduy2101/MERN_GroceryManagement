@@ -39,10 +39,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/supplier", supplierRoutes);
 app.use("/api/product", productRoutes);
-
 app.use('/api/purchase-orders', purchaseOrderRoutes);
 app.use('/api/sales-orders', salesOrderRoutes);
-
 
 
 // Serve static files 
