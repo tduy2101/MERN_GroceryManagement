@@ -1,6 +1,7 @@
 # Node modules
 node_modules/
 
+
 # Logs
 logs
 *.log
@@ -27,3 +28,6 @@ coverage/
 
 # Cache
 .cache/
+
+# Uploads
+uploads/
