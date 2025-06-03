@@ -4,7 +4,7 @@ import Input from '../Inputs/Input';
 import { validateEmail } from '../../utils/helper';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPath';
-import { UserContext } from '../../context/UserContext';
+import { UserContext } from '../../context/userContext';
 
 const SignInForm = ({ onSwitchToSignUp }) => {
     const [email, setEmail] = useState("");
