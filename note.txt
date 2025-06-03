@@ -1,0 +1,73 @@
+npm create vite@latest .
+npm install
+npm run dev
+
+npm run dev -- --host 0.0.0.0
+npm install -g yarn
+
+npm install tailwindcss @tailwindcss/vite
+-> config vite.config.js
+thêm @import "tailwindcss"; trước file css sử dụng
+
+npm install react-router-dom react-hot-toast
+
+dùng tailwindcss && prebuiltUI
+==============================================================================================================================================
+
+BACKEND
+npm install express jsonwebtoken mongoose multer bcryptjs cors dotenv exceljs
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
+authRoutes.js phục vụ người dùng đăng nhập và quản lý tài khoản
+userRoutes.js phục vụ admin dashboard để quản lý user
+
+ 1. Authentication (Đăng nhập, đăng xuất)
+Method	Endpoint	Chức năng
+POST	/api/auth/login	Đăng nhập người dùng
+POST	/api/auth/logout	Đăng xuất người dùng
+GET	/api/auth/me	Lấy thông tin người dùng hiện tại (xác thực token)
+
+Ghi chú: Sử dụng JWT (jsonwebtoken) để bảo mật phiên đăng nhập. Mã hóa mật khẩu bằng bcrypt.
+
+ 2. Quản lý người dùng (tùy chọn, nếu có phân quyền)
+Method	Endpoint	Chức năng
+GET	/api/users	Lấy danh sách người dùng (admin)
+GET	/api/users/:id	Lấy chi tiết 1 người dùng
+POST	/api/users	Tạo người dùng mới
+PUT	/api/users/:id	Cập nhật thông tin người dùng
+DELETE	/api/users/:id	Xóa người dùng
+
+3. Quản lý danh mục hàng hóa
+Method	Endpoint	Chức năng
+GET	/api/categories	Lấy danh sách danh mục
+GET	/api/categories/:id	Lấy chi tiết 1 danh mục
+POST	/api/categories	Thêm danh mục mới
+PUT	/api/categories/:id	Cập nhật danh mục
+DELETE	/api/categories/:id	Xóa danh mục
+
+ 4. Quản lý hàng hóa
+Method	Endpoint	Chức năng
+GET	/api/products	Lấy danh sách hàng hóa
+GET	/api/products/:id	Lấy chi tiết hàng hóa
+POST	/api/products	Thêm hàng hóa mới
+PUT	/api/products/:id	Cập nhật hàng hóa
+DELETE	/api/products/:id	Xóa hàng hóa
+
+Mỗi hàng hóa có thể liên kết với một danh mục (category).
+
+ 5. Quản lý nhập - xuất hàng hóa (kho)
+Method	Endpoint	Chức năng
+GET	/api/stock	Lấy danh sách phiếu nhập/xuất
+GET	/api/stock/:id	Lấy chi tiết phiếu
+POST	/api/stock/in	Tạo phiếu nhập hàng
+POST	/api/stock/out	Tạo phiếu xuất hàng
+DELETE	/api/stock/:id	Hủy phiếu nhập/xuất
+
+Mỗi phiếu có thể chứa nhiều mặt hàng. Cần lưu thông tin số lượng, ngày tạo, người tạo.
+
+ 6. Báo cáo - Thống kê
+Method	Endpoint	Chức năng
+GET	/api/report/inventory	Thống kê tồn kho hiện tại theo sản phẩm
+GET	/api/report/in	Báo cáo nhập hàng trong khoảng thời gian
+GET	/api/report/out	Báo cáo xuất hàng trong khoảng thời gian
+GET	/api/report/top-selling	Thống kê hàng bán c

@@ -1,0 +1,372 @@
+/* src/components/auth/AuthCustom.css */
+
+/* ----- Checkbox Styling ----- */
+.auth-custom-checkbox {
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    background-color: #e3e3e3;
+    border: 1px solid #e3e3e3;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05);
+    width: 24px;
+    /* Giữ kích thước này hoặc kích thước bạn đã chọn */
+    height: 24px;
+    /* Giữ kích thước này hoặc kích thước bạn đã chọn */
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    /* QUAN TRỌNG */
+    vertical-align: middle;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.auth-custom-checkbox:focus,
+.auth-custom-checkbox:checked:focus,
+.auth-custom-checkbox:active,
+.auth-custom-checkbox:checked:active {
+    border-color: #03A9F4;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.auth-custom-checkbox:checked {
+    background-color: #03A9F4;
+    /* Màu nền khi checked */
+    border-color: #03A9F4;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0px -15px 10px -12px rgba(0, 0, 0, 0.05), inset 15px 10px -12px rgba(255, 255, 255, 0.1);
+}
+
+
+.auth-custom-checkbox:checked:after {
+    content: "✓";
+    /* Quay lại dấu tick */
+
+    /* Màu dấu tick - HTML gốc là #03A9F4, nhưng nó sẽ chìm vào nền.
+       Hãy thử màu trắng hoặc màu nền của form SignUp để nó nổi bật. */
+    color: #FFFFFF;
+    /* TRẮNG - Để nổi trên nền xanh #03A9F4 */
+    /* Hoặc màu nền của form SignUp nếu bạn thích: color: #2C3034; */
+
+    font-size: 1.1em;
+    /* Điều chỉnh kích thước dấu tick cho vừa với checkbox 24x24px */
+    /* 1.4em có thể hơi lớn nếu checkbox là 24x24px */
+    font-weight: 900;
+    /* Giữ nguyên độ đậm */
+
+    position: absolute;
+    /* Bắt buộc */
+
+    /* Căn giữa dấu tick */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+}
+
+/* ----- Input Autofill Styling ----- */
+.auth-input-dark-theme:-webkit-autofill,
+.auth-input-dark-theme:-webkit-autofill:hover,
+.auth-input-dark-theme:-webkit-autofill:focus,
+.auth-input-dark-theme:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #2C3034 inset !important;
+    -webkit-text-fill-color: #e3e3e3 !important;
+    caret-color: #e3e3e3;
+}
+
+.auth-input-light-theme:-webkit-autofill,
+.auth-input-light-theme:-webkit-autofill:hover,
+.auth-input-light-theme:-webkit-autofill:focus,
+.auth-input-light-theme:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #f9f9f9 inset !important;
+    -webkit-text-fill-color: #212121 !important;
+    caret-color: #212121;
+}
+
+/* ----- Scrollbar Hiding ----- */
+.auth-hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.auth-hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ----- Link Styling (cho "Terms of Service") ----- */
+.auth-terms-link {
+    color: #03A9F4;
+    /* Màu cho link trong SignUpForm (màu xanh) */
+    text-decoration: none;
+}
+
+.auth-terms-link:hover {
+    text-decoration: underline;
+    /* Thêm gạch chân khi hover */
+}
+
+
+.auth-terms-link-light {
+    color: #673AB7;
+    /* Màu cho link trong SignInForm (màu tím) */
+    text-decoration: none;
+}
+
+.auth-terms-link-light:hover {
+    text-decoration: underline;
+}
+
+
+.auth-label {
+    font-size: 0.8em;
+    /* HTML gốc */
+    text-transform: uppercase;
+    /* HTML gốc */
+    display: block;
+    /* Để input xuống dòng */
+    margin-bottom: 0.1em;
+    /* Tạo khoảng cách nhẹ với input, thay cho input margin-top */
+}
+
+/* Màu cho label trong form tối (SignUp) */
+.auth-label-dark {
+    color: #e3e3e3;
+    /* HTML gốc */
+}
+
+/* Màu cho label trong form sáng (SignIn) */
+.auth-label-light {
+    color: #212121;
+    /* HTML gốc */
+}
+
+
+/* ----- Style cho các thẻ input để giống HTML gốc ----- */
+/* Bạn sẽ áp dụng class này cho các <input> trong JSX, KẾT HỢP với Tailwind */
+.auth-input-base {
+    background-color: transparent;
+    /* HTML gốc */
+    border: 0;
+    /* HTML gốc */
+    outline: 0;
+    /* HTML gốc */
+    font-size: 1em;
+    /* HTML gốc */
+    padding: 8px 1px;
+    /* HTML gốc */
+    /* margin-top: 0.1em;  -> Đã chuyển thành margin-bottom cho label */
+    width: 100%;
+    /* Tailwind: w-full */
+}
+
+/* Style riêng cho input form tối (SignUp) */
+.auth-input-style-dark {
+    border-bottom: 1px solid #e3e3e3;
+    /* HTML gốc */
+    color: #e3e3e3;
+    /* HTML gốc */
+}
+
+.auth-input-style-dark:focus,
+.auth-input-style-dark:active {
+    border-color: #03A9F4;
+    /* HTML gốc */
+    color: #03A9F4;
+    /* HTML gốc */
+}
+
+/* Style riêng cho input form sáng (SignIn) */
+.auth-input-style-light {
+    border-bottom: 1px solid #212121;
+    /* HTML gốc */
+    color: #212121;
+    /* Thêm màu cho input sáng, HTML gốc không có nhưng nên có */
+}
+
+.auth-input-style-light:focus,
+.auth-input-style-light:active {
+    border-color: #673AB7;
+    /* HTML gốc */
+    color: #673AB7;
+    /* Thêm màu khi focus cho input sáng */
+}
+
+/* ----- Container cho Label + Input (tương đương .form-element .form-stack) ----- */
+.auth-form-element-stack {
+    margin: 1.6em 0;
+    /* HTML gốc cho .form-element */
+    display: flex;
+    /* HTML gốc cho .form-stack */
+    flex-direction: column;
+    /* HTML gốc cho .form-stack */
+}
+
+/* ----- Container cho Checkbox + Label (tương đương .form-element .form-checkbox) ----- */
+.auth-form-element-checkbox {
+    margin: 1.2em 0;
+    /* HTML gốc cho .form-element */
+    display: flex;
+    /* HTML gốc cho .form-checkbox */
+    align-items: center;
+    /* HTML gốc cho .form-checkbox */
+}
+
+.auth-form-checkbox-label {
+    /* Style cho label của checkbox */
+    margin-left: 6px;
+    /* HTML gốc: margin: 0 6px 0; */
+    margin-right: 6px;
+    /* Thêm để đối xứng */
+    font-size: 0.72em;
+    /* HTML gốc */
+    /* text-transform: uppercase;  HTML gốc không có uppercase cho label này */
+    /* vertical-align: middle;  Đã xử lý bằng flex align-items: center */
+}
+
+.auth-form-checkbox-label-dark {
+    color: #e3e3e3;
+}
+
+/* Nếu có checkbox ở form sáng, bạn cần thêm class màu cho label của nó */
+
+
+/* ----- Container cho nút submit (tương đương .form-element .form-submit) ----- */
+.auth-form-element-submit {
+    margin: 1.6em 0 0;
+    /* HTML gốc */
+    display: flex;
+    /* Giúp các nút nằm trên một hàng và cách nhau */
+    flex-wrap: wrap;
+    /* Cho phép nút xuống dòng trên màn hình nhỏ */
+    gap: 10px;
+    /* Khoảng cách giữa các nút, thay cho margin-right trên nút đầu tiên */
+}
+
+/* ----- Style cho các nút (có thể dùng Tailwind trực tiếp, nhưng nếu muốn class riêng) ----- */
+.auth-button-base {
+    padding: 0.8em 1.2em;
+    /* HTML gốc */
+    font-weight: 600;
+    /* HTML gốc */
+    text-transform: uppercase;
+    /* HTML gốc */
+    font-size: 1em;
+    /* HTML gốc */
+    line-height: 1em;
+    /* HTML gốc */
+    letter-spacing: 0.6px;
+    /* HTML gốc */
+    border-radius: 3px;
+    /* HTML gốc */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.1);
+    /* HTML gốc */
+    border: 0;
+    /* HTML gốc */
+    outline: 0;
+    /* HTML gốc */
+    transition: all 0.25s;
+    /* HTML gốc */
+    cursor: pointer;
+    /* width: auto; HTML gốc */
+}
+
+.auth-button-base:focus,
+.auth-button-base:active,
+.auth-button-base:hover {
+    box-shadow: 0 4px 7px rgba(0, 0, 0, 0.1), 0 3px 6px rgba(0, 0, 0, 0.1);
+    /* HTML gốc */
+}
+
+.auth-button-signup-main {
+    /* Nút Sign Up chính */
+    background: #03A9F4;
+    /* HTML gốc */
+    color: #fff;
+    /* HTML gốc */
+}
+
+.auth-button-signup-main:focus,
+.auth-button-signup-main:active,
+.auth-button-signup-main:hover {
+    background: #0288D1;
+    /* HTML gốc */
+}
+
+.auth-button-login-main {
+    /* Nút Login chính */
+    background: #673AB7;
+    /* HTML gốc */
+    color: #fff;
+    /* HTML gốc */
+}
+
+.auth-button-login-main:focus,
+.auth-button-login-main:active,
+.auth-button-login-main:hover {
+    background: #512DA8;
+    /* HTML gốc */
+}
+
+.auth-button-off {
+    /* Nút "off" (Log In trong form Sign Up, Sign Up trong form Log In) */
+    background: none;
+    /* HTML gốc */
+    box-shadow: none;
+    /* HTML gốc */
+    /* margin: 0; HTML gốc -> đã xử lý bằng gap trên container */
+}
+
+.auth-button-off:focus,
+.auth-button-off:active,
+.auth-button-off:hover {
+    box-shadow: none;
+    /* HTML gốc */
+}
+
+.auth-button-off-signup {
+    /* Nút "Log In" trong form Sign Up */
+    color: #03A9F4;
+    /* HTML gốc */
+}
+
+.auth-button-off-signup:focus,
+.auth-button-off-signup:active,
+.auth-button-off-signup:hover {
+    color: #03A9F4;
+    /* HTML gốc */
+    background: #212121;
+    /* HTML gốc */
+}
+
+.auth-button-off-login {
+    /* Nút "Sign Up" trong form Log In */
+    color: #673AB7;
+    /* HTML gốc */
+}
+
+.auth-button-off-login:focus,
+.auth-button-off-login:active,
+.auth-button-off-login:hover {
+    color: #512DA8;
+    /* HTML gốc (màu đậm hơn khi hover) */
+    background: #e3e3e3;
+    /* HTML gốc */
+}
+
+/* AuthCustom.css hoặc index.css */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out 0.3s forwards;
+    /* delay 0.3s */ }
