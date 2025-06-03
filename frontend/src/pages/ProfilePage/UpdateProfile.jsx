@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 
 import { AppContext } from '../../context/appContext';
-import { UserContext } from '../../context/UserContext';
+import { UserContext } from '../../context/userContext';
 
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPath';
