@@ -60,9 +60,17 @@ const createProduct = async (req, res) => {
 
 
         // Validation cơ bản (có thể dùng express-validator để chi tiết hơn)
-        if (!name || !sellingPrice || !quantityInStock || !category) {
-            return res.status(400).json({ success: false, message: 'Name, Selling Price, Quantity In Stock, and Category are required fields.' });
+        if (!name || name.trim() === "" ||
+            typeof sellingPrice !== 'number' || sellingPrice < 0 || 
+            typeof quantityInStock !== 'number' || quantityInStock < 0 || 
+            !category // Category ID vẫn nên được cung cấp
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: 'Name, Selling Price (non-negative number), Quantity In Stock (non-negative number), and Category are required fields.'
+            });
         }
+
         // Kiểm tra Category ID (nếu có)
         if (category) {
             const categoryExists = await Category.findById(category);
