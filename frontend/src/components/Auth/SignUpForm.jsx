@@ -61,7 +61,7 @@ const SignUpForm = ({ onSwitchToLogin }) => {
         try {
             // Upload profile picture if provided
             if (profilePic) {
-                const imgUploadRes = await uploadImage(profilePic);
+                const imgUploadRes = await uploadImage(profilePic, 'avatar');
                 if (imgUploadRes && imgUploadRes.imageUrl) {
                     profileImageUrl = imgUploadRes.imageUrl;
                 } else {

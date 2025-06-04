@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { API_PATHS, BASE_URL } from '../../utils/apiPath'; // Đảm bảo đường dẫn đúng
+import { API_PATHS, BASE_URL } from '../../utils/apiPath'; 
 import toast from 'react-hot-toast';
 import { FaEdit, FaTrashAlt, FaPlus, FaSearch, FaTimes, FaLink, FaSpinner, FaBoxOpen, FaImage, FaSave } from 'react-icons/fa';
-import uploadImage from '../../utils/uploadImage'; // Đảm bảo đường dẫn đúng
+import uploadImage from '../../utils/uploadImage'; 
 
 // ----- Constants & UI Components -----
 const initialFormData = {
@@ -12,7 +12,7 @@ const initialFormData = {
     description: '',
     sellingPrice: '',
     costPrice: '',
-    quantityInStock: '0', // Mặc định là 0 khi tạo mới
+    quantityInStock: '0', 
     imageUrl: '',
     category: '',
     supplier: '',
@@ -163,7 +163,7 @@ const Products = () => {
         const toastId = toast.loading("Đang tải ảnh lên...");
 
         try {
-            const result = await uploadImage(file);
+            const result = await uploadImage(file, 'product');
             toast.dismiss(toastId);
             if (result.imageUrl) {
                 setFormData((prev) => ({ ...prev, imageUrl: result.imageUrl }));

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.7",
+    "cloudinary": "^2.6.1",
     "final_project": "file:..",
     "paper": "^0.12.18",
     "react": "^19.1.0",

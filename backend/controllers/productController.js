@@ -39,7 +39,7 @@ const createProduct = async (req, res) => {
     try {
         let { // Sử dụng let để có thể gán lại sku
             name,
-            sku, // Giữ nguyên sku từ req.body
+            sku, 
             description,
             sellingPrice,
             costPrice,

@@ -153,7 +153,7 @@ const UserProfilePage = () => {
 
         try {
             if (profilePicFile) {
-                const uploadRes = await uploadImage(profilePicFile);
+                const uploadRes = await uploadImage(profilePicFile, 'avatar');
                 if (uploadRes && uploadRes.imageUrl) {
                     newImageUrl = uploadRes.imageUrl;
                 } else {
